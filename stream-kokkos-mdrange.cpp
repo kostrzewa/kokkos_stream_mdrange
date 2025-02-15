@@ -55,7 +55,7 @@
 #include <sys/time.h>
 
 #define STREAM_NTIMES 20
-using real_t = float;
+using real_t = double;
 
 #define HLINE "-------------------------------------------------------------\n"
 
@@ -76,14 +76,14 @@ template <int rank>
 using Policy      = Kokkos::MDRangePolicy<Kokkos::Rank<rank>>;
 
 template <std::size_t... Idcs>
-constexpr Kokkos::Array<int, sizeof...(Idcs)>
-make_repeated_sequence_impl(int value, std::integer_sequence<std::size_t, Idcs...>)
+constexpr Kokkos::Array<std::size_t, sizeof...(Idcs)>
+make_repeated_sequence_impl(std::size_t value, std::integer_sequence<std::size_t, Idcs...>)
 {
   return { ((void)Idcs, value)... };
 }
 
 template <std::size_t N>
-constexpr Kokkos::Array<int,N> make_repeated_sequence(int value)
+constexpr Kokkos::Array<std::size_t,N> make_repeated_sequence(std::size_t value)
 {
   return make_repeated_sequence_impl(value, std::make_index_sequence<N>{});
 }
@@ -129,7 +129,7 @@ int parse_args(int argc, char **argv, StreamIndex &stream_array_size) {
   return 0;
 }
 
-void perform_set(StreamDeviceArray &a, const real_t scalar) {
+void perform_set(const StreamDeviceArray &a, const real_t scalar) {
   constexpr auto rank = a.rank();
   Kokkos::parallel_for(
       "set", 

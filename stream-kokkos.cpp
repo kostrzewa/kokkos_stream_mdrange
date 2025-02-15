@@ -53,7 +53,7 @@
 
 #define STREAM_ARRAY_SIZE 10000000
 #define STREAM_NTIMES 20
-using real_t = float;
+using real_t = double;
 
 #define HLINE "-------------------------------------------------------------\n"
 
@@ -68,7 +68,7 @@ using constStreamDeviceArray =
 #endif
 using StreamHostArray = typename StreamDeviceArray::HostMirror;
 
-using StreamIndex = int;
+using StreamIndex = long long int;
 using Policy      = Kokkos::RangePolicy<Kokkos::IndexType<StreamIndex>>;
 
 int parse_args(int argc, char **argv, StreamIndex &stream_array_size) {
@@ -94,7 +94,7 @@ int parse_args(int argc, char **argv, StreamIndex &stream_array_size) {
   while ((c = getopt_long(argc, argv, "n:h", long_options, &option_index)) !=
          -1)
     switch (c) {
-      case 'n': stream_array_size = atoi(optarg); break;
+      case 'n': stream_array_size = atoll(optarg); break;
       case 'h':
         printf("%s", help_string.c_str());
         return -2;
