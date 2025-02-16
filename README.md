@@ -13,4 +13,4 @@ Results of runs as well as run scripts are provided in the `run_scripts_and_resu
 
 CPU benchmarks are run on both one and two sockets (using `OMP_PLACES=cores OMP_PROC_BIND=close` to ensure thread pinning to one socket when fewer threads are used than there are CPU cores).
 
-See [results][run_scripts_and_results/kokkos_stream_mdrange.pdf] for result plots.
+See [results](run_scripts_and_results/kokkos_stream_mdrange.pdf) for result plots.
