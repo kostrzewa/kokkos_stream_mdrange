@@ -18,8 +18,8 @@ set(Kokkos_ENABLE_AGGRESSIVE_VECTORIZATION "ON" CACHE BOOL "CMakeLists: Kokkos_E
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/kokkos/kokkos ${CMAKE_CURRENT_BINARY_DIR}/kokkos)
 
-add_executable(stream-kokkos stream-kokkos.cpp)
-target_link_libraries(stream-kokkos Kokkos::kokkos)
+add_executable(stream-kokkos-range stream-kokkos-range.cpp)
+target_link_libraries(stream-kokkos-range Kokkos::kokkos)
 
 add_executable(stream-kokkos-mdrange stream-kokkos-mdrange.cpp)
 target_link_libraries(stream-kokkos-mdrange Kokkos::kokkos)
