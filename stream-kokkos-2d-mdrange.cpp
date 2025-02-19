@@ -321,7 +321,7 @@ int run_benchmark(const StreamIndex stream_array_size) {
       Kokkos::MDRangePolicy<Kokkos::Rank<a.rank()>,
                             Kokkos::DefaultHostExecutionSpace>(make_repeated_sequence<a.rank()>(0),
                                                                make_repeated_sequence<a.rank()>(stream_array_size)),
-      KOKKOS_LAMBDA(const int i, const int j) {
+      KOKKOS_LAMBDA(const StreamIndex i, const StreamIndex j) {
         a(i,j) = ainit;
         b(i,j) = binit;
         c(i,j) = cinit;
@@ -332,7 +332,7 @@ int run_benchmark(const StreamIndex stream_array_size) {
       "init_dev",
       Kokkos::MDRangePolicy<Kokkos::Rank<a.rank()>>(make_repeated_sequence<a.rank()>(0),
                                                     make_repeated_sequence<a.rank()>(stream_array_size)),
-      KOKKOS_LAMBDA(const int i, const int j) {
+      KOKKOS_LAMBDA(const StreamIndex i, const StreamIndex j) {
         dev_a(i,j) = ainit;
         dev_b(i,j) = binit;
         dev_c(i,j) = cinit;
