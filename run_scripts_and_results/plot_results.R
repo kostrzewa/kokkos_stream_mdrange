@@ -2,14 +2,14 @@ require(hadron)
 require(dplyr)
 require(ggplot2)
 
-archs <- c("dual_epyc3_7713", "dual_xeon_8468", "a100")
+archs <- c("dual_epyc3_7713", "dual_xeon_8468", "a100", "amd_mi250")
 bws <- data.frame(bw=c(190.73, 2*190.73,
                        307.2, 2*307.2,
-                       1935),
+                       1935, 1638),
                   architecture = c("dual_epyc3_7713", "dual_epyc3_7713",
                                    "dual_xeon_8468", "dual_xeon_8468",
-                                   "a100"),
-                  nt=c(64, 128, 48, 96, 32))
+                                   "a100", "amd_mi250"),
+                  nt=c(64, 128, 48, 96, 32, 7))
 
 tikzfiles <- hadron::tikz.init("kokkos_stream_mdrange", width=12, height=6)
 
