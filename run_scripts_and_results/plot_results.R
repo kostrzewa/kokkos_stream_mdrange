@@ -2,14 +2,37 @@ require(hadron)
 require(dplyr)
 require(ggplot2)
 
-archs <- c("dual_epyc3_7713", "dual_xeon_8468", "a100", "amd_mi250")
+archs <- c("dual_epyc3_7713_gcc",
+           "dual_epyc3_7713_clang",
+           "dual_xeon_8468_gcc", 
+           "dual_xeon_8468_clang", 
+           "nvidia_a100", 
+           "amd_mi250")
+
 bws <- data.frame(bw=c(190.73, 2*190.73,
+                       190.73, 2*190.73,
                        307.2, 2*307.2,
-                       1935, 1638),
-                  architecture = c("dual_epyc3_7713", "dual_epyc3_7713",
-                                   "dual_xeon_8468", "dual_xeon_8468",
-                                   "a100", "amd_mi250"),
-                  nt=c(64, 128, 48, 96, 32, 7))
+                       307.2, 2*307.2,
+                       1935,
+                       1638),
+                  ylim=c(600, 600,
+                         600, 600,
+                         900, 900,
+                         900, 900,
+                         2000,
+                         1650),
+                  architecture = c("dual_epyc3_7713_gcc", "dual_epyc3_7713_gcc",
+                                   "dual_epyc3_7713_clang", "dual_epyc3_7713_clang",
+                                   "dual_xeon_8468_gcc", "dual_xeon_8468_gcc",
+                                   "dual_xeon_8468_clang", "dual_xeon_8468_clang",
+                                   "nvidia_a100", 
+                                   "amd_mi250"),
+                  nt=c(64, 128,
+                       64, 128,
+                       48, 96, 
+                       48, 96, 
+                       32, 
+                       7))
 
 tikzfiles <- hadron::tikz.init("kokkos_stream_mdrange", width=12, height=6)
 
@@ -44,7 +67,7 @@ for( i in 1:length(archs) ){
        ggplot2::ggtitle(hadron::escapeLatexSpecials(sprintf("%s, OMP_PROC_BIND=close, OMP_PLACES=cores", arch))) +
        ggplot2::facet_wrap(sprintf("$n_{\\textrm{th}}=%03d$",nt) ~ sprintf("policy = %s", policy), ncol = 5) +
        ggplot2::scale_x_continuous(trans = "log10") +
-       ggplot2::coord_cartesian(ylim = c(0, max(1.01*bwdat$bw, 0.4*dat$bw))) +
+       ggplot2::coord_cartesian(ylim = c(0, bwdat$ylim[1])) +
        ggplot2::labs(x = "vector size [MB]",
                      y = "BW [GB/s]") +
        ggplot2::theme_bw() +
