@@ -130,7 +130,7 @@ int parse_args(int argc, char **argv, StreamIndex &stream_array_size) {
   return 0;
 }
 
-void perform_set(const StreamDeviceArray &a, const real_t scalar) {
+void perform_set(const StreamDeviceArray a, const real_t scalar) {
   constexpr auto rank = a.rank();
   Kokkos::parallel_for(
       "set", 
@@ -141,7 +141,7 @@ void perform_set(const StreamDeviceArray &a, const real_t scalar) {
   Kokkos::fence();
 }
 
-void perform_copy(const constStreamDeviceArray &a, StreamDeviceArray &b) {
+void perform_copy(const constStreamDeviceArray a, StreamDeviceArray b) {
   constexpr auto rank = a.rank();
   Kokkos::parallel_for(
       "copy",
@@ -152,7 +152,7 @@ void perform_copy(const constStreamDeviceArray &a, StreamDeviceArray &b) {
   Kokkos::fence();
 }
 
-void perform_scale(StreamDeviceArray &b, const constStreamDeviceArray &c,
+void perform_scale(StreamDeviceArray b, const constStreamDeviceArray c,
                    const real_t scalar) {
   constexpr auto rank = b.rank();
   Kokkos::parallel_for(
@@ -164,8 +164,8 @@ void perform_scale(StreamDeviceArray &b, const constStreamDeviceArray &c,
   Kokkos::fence();
 }
 
-void perform_add(const constStreamDeviceArray &a,
-                 const constStreamDeviceArray &b, StreamDeviceArray &c) {
+void perform_add(const constStreamDeviceArray a,
+                 const constStreamDeviceArray b, StreamDeviceArray c) {
   constexpr auto rank = a.rank();
   Kokkos::parallel_for(
       "add",
@@ -176,8 +176,8 @@ void perform_add(const constStreamDeviceArray &a,
   Kokkos::fence();
 }
 
-void perform_triad(StreamDeviceArray &a, const constStreamDeviceArray &b,
-                   const constStreamDeviceArray &c, const real_t scalar) {
+void perform_triad(StreamDeviceArray a, const constStreamDeviceArray b,
+                   const constStreamDeviceArray c, const real_t scalar) {
   constexpr auto rank = a.rank();
   Kokkos::parallel_for(
       "triad", 
