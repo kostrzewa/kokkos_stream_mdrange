@@ -21,5 +21,14 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/kokkos/kokkos ${CMAKE_CU
 add_executable(stream-kokkos-range stream-kokkos-range.cpp)
 target_link_libraries(stream-kokkos-range Kokkos::kokkos)
 
-add_executable(stream-kokkos-mdrange stream-kokkos-mdrange.cpp)
-target_link_libraries(stream-kokkos-mdrange Kokkos::kokkos)
+add_executable(stream-kokkos-2d-mdrange stream-kokkos-2d-mdrange.cpp)
+target_link_libraries(stream-kokkos-2d-mdrange Kokkos::kokkos)
+
+add_executable(stream-kokkos-3d-mdrange stream-kokkos-3d-mdrange.cpp)
+target_link_libraries(stream-kokkos-3d-mdrange Kokkos::kokkos)
+
+add_executable(stream-kokkos-4d-mdrange stream-kokkos-4d-mdrange.cpp)
+target_link_libraries(stream-kokkos-4d-mdrange Kokkos::kokkos)
+
+add_executable(stream-kokkos-5d-mdrange stream-kokkos-5d-mdrange.cpp)
+target_link_libraries(stream-kokkos-5d-mdrange Kokkos::kokkos)
