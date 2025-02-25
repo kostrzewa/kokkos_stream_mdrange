@@ -138,6 +138,7 @@ void perform_set(const StreamDeviceArray a, const real_t scalar) {
   for(StreamIndex i = 0; i < N; ++i){
     for(StreamIndex j = 0; j < N; ++j){
       for(StreamIndex k = 0; k < N; ++k){
+#pragma omp simd
         for(StreamIndex l = 0; l < N; ++l){
           a(i,j,k,l) = scalar;
         }
@@ -152,6 +153,7 @@ void perform_copy(const constStreamDeviceArray a, StreamDeviceArray b) {
   for(StreamIndex i = 0; i < N; ++i){
     for(StreamIndex j = 0; j < N; ++j){
       for(StreamIndex k = 0; k < N; ++k){
+#pragma omp simd
         for(StreamIndex l = 0; l < N; ++l){
           b(i,j,k,l) = a(i,j,k,l);
         }
@@ -167,6 +169,7 @@ void perform_scale(StreamDeviceArray b, const constStreamDeviceArray c,
   for(StreamIndex i = 0; i < N; ++i){
     for(StreamIndex j = 0; j < N; ++j){
       for(StreamIndex k = 0; k < N; ++k){
+#pragma omp simd
         for(StreamIndex l = 0; l < N; ++l){
           b(i,j,k,l) = scalar * c(i,j,k,l);
         }
@@ -182,6 +185,7 @@ void perform_add(const constStreamDeviceArray a,
   for(StreamIndex i = 0; i < N; ++i){
     for(StreamIndex j = 0; j < N; ++j){
       for(StreamIndex k = 0; k < N; ++k){
+#pragma omp simd
         for(StreamIndex l = 0; l < N; ++l){
           c(i,j,k,l) = a(i,j,k,l) + b(i,j,k,l);
         }
@@ -197,6 +201,7 @@ void perform_triad(StreamDeviceArray a, const constStreamDeviceArray b,
   for(StreamIndex i = 0; i < N; ++i){
     for(StreamIndex j = 0; j < N; ++j){
       for(StreamIndex k = 0; k < N; ++k){
+#pragma omp simd
         for(StreamIndex l = 0; l < N; ++l){
           a(i,j,k,l) = b(i,j,k,l) + scalar * c(i,j,k,l);
         }
@@ -347,6 +352,7 @@ int run_benchmark(const StreamIndex stream_array_size) {
   for(StreamIndex i = 0; i < N; ++i){
     for(StreamIndex j = 0; j < N; ++j){
       for(StreamIndex k = 0; k < N; ++k){
+#pragma omp simd
         for(StreamIndex l = 0; l < N; ++l){
           a(i,j,k,l) = ainit;
           b(i,j,k,l) = binit;
@@ -360,6 +366,7 @@ int run_benchmark(const StreamIndex stream_array_size) {
   for(StreamIndex i = 0; i < N; ++i){
     for(StreamIndex j = 0; j < N; ++j){
       for(StreamIndex k = 0; k < N; ++k){
+#pragma omp simd
         for(StreamIndex l = 0; l < N; ++l){
           dev_a(i,j,k,l) = ainit;
           dev_b(i,j,k,l) = binit;

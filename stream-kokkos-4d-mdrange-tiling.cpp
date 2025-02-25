@@ -55,7 +55,7 @@
 
 #include <sys/time.h>
 
-#define COLLAPSE 3
+#define TILING Kokkos::Array<size_t,4>({1,2,static_cast<size_t>(stream_array_size),static_cast<size_t>(stream_array_size)})
 
 #define STREAM_NTIMES 20
 using real_t = double;
@@ -133,76 +133,66 @@ int parse_args(int argc, char **argv, StreamIndex &stream_array_size) {
 }
 
 void perform_set(const StreamDeviceArray a, const real_t scalar) {
-  const StreamIndex N = a.extent(0);
-#pragma omp parallel for collapse(COLLAPSE)
-  for(StreamIndex i = 0; i < N; ++i){
-    for(StreamIndex j = 0; j < N; ++j){
-      for(StreamIndex k = 0; k < N; ++k){
-        for(StreamIndex l = 0; l < N; ++l){
-          a(i,j,k,l) = scalar;
-        }
-      }
-    }
-  }
+  constexpr auto rank = a.rank();
+  const auto stream_array_size = a.extent(0);
+  Kokkos::parallel_for(
+      "set", 
+      Policy<rank>(make_repeated_sequence<rank>(0), make_repeated_sequence<rank>(a.extent(0)), TILING),
+      KOKKOS_LAMBDA(const StreamIndex i, const StreamIndex j, const StreamIndex k, const StreamIndex l)
+      { a(i,j,k,l) = scalar; });
+
+  Kokkos::fence();
 }
 
 void perform_copy(const constStreamDeviceArray a, StreamDeviceArray b) {
-  const StreamIndex N = a.extent(0);
-#pragma omp parallel for collapse(COLLAPSE)
-  for(StreamIndex i = 0; i < N; ++i){
-    for(StreamIndex j = 0; j < N; ++j){
-      for(StreamIndex k = 0; k < N; ++k){
-        for(StreamIndex l = 0; l < N; ++l){
-          b(i,j,k,l) = a(i,j,k,l);
-        }
-      }
-    }
-  }
+  constexpr auto rank = a.rank();
+  const auto stream_array_size = a.extent(0);
+  Kokkos::parallel_for(
+      "copy",
+      Policy<rank>(make_repeated_sequence<rank>(0), make_repeated_sequence<rank>(a.extent(0)),TILING),
+      KOKKOS_LAMBDA(const StreamIndex i, const StreamIndex j, const StreamIndex k, const StreamIndex l)
+      { b(i,j,k,l) = a(i,j,k,l); });
+
+  Kokkos::fence();
 }
 
 void perform_scale(StreamDeviceArray b, const constStreamDeviceArray c,
                    const real_t scalar) {
-  const StreamIndex N = b.extent(0);
-#pragma omp parallel for collapse(COLLAPSE)
-  for(StreamIndex i = 0; i < N; ++i){
-    for(StreamIndex j = 0; j < N; ++j){
-      for(StreamIndex k = 0; k < N; ++k){
-        for(StreamIndex l = 0; l < N; ++l){
-          b(i,j,k,l) = scalar * c(i,j,k,l);
-        }
-      }
-    }
-  }
+  constexpr auto rank = b.rank();
+  const auto stream_array_size = b.extent(0);
+  Kokkos::parallel_for(
+      "scale",
+      Policy<rank>(make_repeated_sequence<rank>(0), make_repeated_sequence<rank>(b.extent(0)),TILING),
+      KOKKOS_LAMBDA(const StreamIndex i, const StreamIndex j, const StreamIndex k, const StreamIndex l)
+      { b(i,j,k,l) = scalar * c(i,j,k,l); });
+
+  Kokkos::fence();
 }
 
 void perform_add(const constStreamDeviceArray a,
                  const constStreamDeviceArray b, StreamDeviceArray c) {
-  const StreamIndex N = a.extent(0);
-#pragma omp parallel for collapse(COLLAPSE)
-  for(StreamIndex i = 0; i < N; ++i){
-    for(StreamIndex j = 0; j < N; ++j){
-      for(StreamIndex k = 0; k < N; ++k){
-        for(StreamIndex l = 0; l < N; ++l){
-          c(i,j,k,l) = a(i,j,k,l) + b(i,j,k,l);
-        }
-      }
-    }
-  }
+  constexpr auto rank = a.rank();
+  const auto stream_array_size = a.extent(0);
+  Kokkos::parallel_for(
+      "add",
+      Policy<rank>(make_repeated_sequence<rank>(0), make_repeated_sequence<rank>(a.extent(0)),TILING),
+      KOKKOS_LAMBDA(const StreamIndex i, const StreamIndex j, const StreamIndex k, const StreamIndex l)
+      { c(i,j,k,l) = a(i,j,k,l) + b(i,j,k,l); });
+
+  Kokkos::fence();
 }
 
 void perform_triad(StreamDeviceArray a, const constStreamDeviceArray b,
                    const constStreamDeviceArray c, const real_t scalar) {
-  const StreamIndex N = a.extent(0);
-#pragma omp parallel for collapse(COLLAPSE)
-  for(StreamIndex i = 0; i < N; ++i){
-    for(StreamIndex j = 0; j < N; ++j){
-      for(StreamIndex k = 0; k < N; ++k){
-        for(StreamIndex l = 0; l < N; ++l){
-          a(i,j,k,l) = b(i,j,k,l) + scalar * c(i,j,k,l);
-        }
-      }
-    }
-  }
+  constexpr auto rank = a.rank();
+  const auto stream_array_size = a.extent(0);
+  Kokkos::parallel_for(
+      "triad", 
+      Policy<rank>(make_repeated_sequence<rank>(0), make_repeated_sequence<rank>(a.extent(0)),TILING),
+      KOKKOS_LAMBDA(const StreamIndex i, const StreamIndex j, const StreamIndex k, const StreamIndex l)
+      { a(i,j,k,l) = b(i,j,k,l) + scalar * c(i,j,k,l); });
+
+  Kokkos::fence();
 }
 
 int perform_validation(StreamHostArray &a, StreamHostArray &b,
@@ -342,32 +332,30 @@ int run_benchmark(const StreamIndex stream_array_size) {
 
   printf("Initializing Views...\n");
 
-  const StreamIndex N = a.extent(0);
-#pragma omp parallel for collapse(COLLAPSE)
-  for(StreamIndex i = 0; i < N; ++i){
-    for(StreamIndex j = 0; j < N; ++j){
-      for(StreamIndex k = 0; k < N; ++k){
-        for(StreamIndex l = 0; l < N; ++l){
-          a(i,j,k,l) = ainit;
-          b(i,j,k,l) = binit;
-          c(i,j,k,l) = cinit;
-        }
-      }
-    }
-  }
+  Kokkos::parallel_for(
+      "init",
+      Kokkos::MDRangePolicy<Kokkos::Rank<a.rank()>,
+                            Kokkos::DefaultHostExecutionSpace>(make_repeated_sequence<a.rank()>(0),
+                                                               make_repeated_sequence<a.rank()>(stream_array_size),
+                                                               TILING),
+      KOKKOS_LAMBDA(const StreamIndex i, const StreamIndex j, const StreamIndex k, const StreamIndex l) {
+        a(i,j,k,l) = ainit;
+        b(i,j,k,l) = binit;
+        c(i,j,k,l) = cinit;
+      });
+  Kokkos::fence();
 
-#pragma omp parallel for collapse(COLLAPSE)
-  for(StreamIndex i = 0; i < N; ++i){
-    for(StreamIndex j = 0; j < N; ++j){
-      for(StreamIndex k = 0; k < N; ++k){
-        for(StreamIndex l = 0; l < N; ++l){
-          dev_a(i,j,k,l) = ainit;
-          dev_b(i,j,k,l) = binit;
-          dev_c(i,j,k,l) = cinit;
-        }
-      }
-    }
-  }
+  Kokkos::parallel_for(
+      "init_dev",
+      Kokkos::MDRangePolicy<Kokkos::Rank<a.rank()>>(make_repeated_sequence<a.rank()>(0),
+                                                    make_repeated_sequence<a.rank()>(stream_array_size),
+                                                    TILING),
+      KOKKOS_LAMBDA(const StreamIndex i, const StreamIndex j, const StreamIndex k, const StreamIndex l) {
+        dev_a(i,j,k,l) = ainit;
+        dev_b(i,j,k,l) = binit;
+        dev_c(i,j,k,l) = cinit;
+      });
+  Kokkos::fence();
 
   printf("Starting benchmarking...\n");
 
