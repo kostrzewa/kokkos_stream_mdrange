@@ -30,5 +30,8 @@ target_link_libraries(stream-kokkos-3d-mdrange Kokkos::kokkos)
 add_executable(stream-kokkos-4d-mdrange stream-kokkos-4d-mdrange.cpp)
 target_link_libraries(stream-kokkos-4d-mdrange Kokkos::kokkos)
 
+add_executable(stream-kokkos-4d-openmp stream-kokkos-4d-openmp.cpp)
+target_link_libraries(stream-kokkos-4d-openmp Kokkos::kokkos)
+
 add_executable(stream-kokkos-5d-mdrange stream-kokkos-5d-mdrange.cpp)
 target_link_libraries(stream-kokkos-5d-mdrange Kokkos::kokkos)
