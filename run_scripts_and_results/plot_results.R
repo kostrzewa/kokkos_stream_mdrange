@@ -4,7 +4,7 @@ require(ggplot2)
 
 archs <- c("dual_epyc3_7713_gcc",
            "dual_epyc3_7713_clang",
-           "dual_epyc3_7742_gcc",
+           "dual_epyc2_7742_gcc",
            "dual_xeon_8468_gcc", 
            "dual_xeon_8468_clang", 
            "nvidia_a100", 
@@ -26,7 +26,7 @@ bws <- data.frame(bw=c(204.8, 2*204.8,
                          1650),
                   architecture = c("dual_epyc3_7713_gcc", "dual_epyc3_7713_gcc",
                                    "dual_epyc3_7713_clang", "dual_epyc3_7713_clang",
-                                   "dual_epyc3_7742_gcc", "dual_epyc3_7742_gcc",
+                                   "dual_epyc2_7742_gcc", "dual_epyc2_7742_gcc",
                                    "dual_xeon_8468_gcc", "dual_xeon_8468_gcc",
                                    "dual_xeon_8468_clang", "dual_xeon_8468_clang",
                                    "nvidia_a100", 
@@ -43,8 +43,9 @@ tikzfiles <- hadron::tikz.init("kokkos_stream_mdrange", width=12, height=6)
 
 for( i in 1:length(archs) ){
   arch <- archs[i]
-  bwdat <- dplyr::filter(bws, architecture == arch) 
+  bwdat <- dplyr::filter(bws, architecture == arch)
   dat <- read.table(sprintf("%s/results.dat", arch), header=TRUE)
+  ncol <- length(unique(dat$policy))
   maxdat <- dplyr::group_by(dat, policy, nt) %>%
             dplyr::filter(n == max(n)) %>%
             dplyr::filter(bw == max(bw)) %>%
@@ -70,7 +71,7 @@ for( i in 1:length(archs) ){
                            inherit.aes=FALSE, 
                            size = 2.5) +
        ggplot2::ggtitle(hadron::escapeLatexSpecials(sprintf("%s, OMP_PROC_BIND=close, OMP_PLACES=cores", arch))) +
-       ggplot2::facet_wrap(sprintf("$n_{\\textrm{th}}=%03d$",nt) ~ sprintf("policy = %s", policy), ncol = 5) +
+       ggplot2::facet_wrap(sprintf("$n_{\\textrm{th}}=%03d$",nt) ~ sprintf("policy = %s", policy), ncol = ncol) +
        ggplot2::scale_x_continuous(trans = "log10") +
        ggplot2::coord_cartesian(ylim = c(0, bwdat$ylim[1])) +
        ggplot2::labs(x = "vector size [MB]",
