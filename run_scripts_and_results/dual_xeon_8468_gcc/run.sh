@@ -8,12 +8,14 @@ n1=( 256 4096 20736 65536 331776 1048576 5308416 16777216 40960000 84934656 1573
 
 echo nt n policy kernel bw > results.dat 
 
-# 48 threads, close binding -> use a single socket
-# 96 threads, both sockets
+# 64 threads, close binding -> use a single socket
+# 128 threads, both sockets
 for nt in 48 96; do
+
   export OMP_NUM_THREADS=$nt
   export OMP_PLACES=cores
   export OMP_PROC_BIND=close
+  
   for n in $( seq 0 $(( ${#n4[@]} - 1 )) ); do
 
     N=${n1[$n]}
@@ -38,6 +40,21 @@ for nt in 48 96; do
     results=( $(./stream-kokkos-4d-mdrange -n ${n4[$n]} | grep GB | awk '{print $1 " " $2}') )
     for i in $(seq 0 4); do
       echo $nt $N 4d-mdrange ${results[$(( 2*$i ))]} ${results[$(( 2*$i + 1 ))]} | tee -a results.dat
+    done
+    
+    results=( $(./stream-kokkos-4d-mdrange-tiling -n ${n4[$n]} | grep GB | awk '{print $1 " " $2}') )
+    for i in $(seq 0 4); do
+      echo $nt $N 4d-mdrange-tiling ${results[$(( 2*$i ))]} ${results[$(( 2*$i + 1 ))]} | tee -a results.dat
+    done
+    
+    results=( $(./stream-kokkos-4d-openmp -n ${n4[$n]} | grep GB | awk '{print $1 " " $2}') )
+    for i in $(seq 0 4); do
+      echo $nt $N 4d-openmp ${results[$(( 2*$i ))]} ${results[$(( 2*$i + 1 ))]} | tee -a results.dat
+    done
+    
+    results=( $(./stream-kokkos-4d-openmp-simd -n ${n4[$n]} | grep GB | awk '{print $1 " " $2}') )
+    for i in $(seq 0 4); do
+      echo $nt $N 4d-openmp-simd ${results[$(( 2*$i ))]} ${results[$(( 2*$i + 1 ))]} | tee -a results.dat
     done
     
     N=$(( ${n5[$n]}*${n5[$n]}*${n5[$n]}*${n5[$n]}*${n5[$n]} ))

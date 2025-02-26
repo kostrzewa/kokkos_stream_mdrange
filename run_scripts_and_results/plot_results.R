@@ -44,7 +44,7 @@ tikzfiles <- hadron::tikz.init("kokkos_stream_mdrange", width=12, height=6)
 for( i in 1:length(archs) ){
   arch <- archs[i]
   bwdat <- dplyr::filter(bws, architecture == arch)
-  dat <- read.table(sprintf("%s/results.dat", arch), header=TRUE)
+  dat <- read.table(sprintf("%s/results.dat", arch), header=TRUE) %>% dplyr::filter(grepl("4d",policy) | policy == "range")
   ncol <- length(unique(dat$policy))
   maxdat <- dplyr::group_by(dat, policy, nt) %>%
             dplyr::filter(n == max(n)) %>%

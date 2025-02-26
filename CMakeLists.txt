@@ -33,6 +33,9 @@ target_link_libraries(stream-kokkos-4d-mdrange Kokkos::kokkos)
 add_executable(stream-kokkos-4d-mdrange-tiling stream-kokkos-4d-mdrange-tiling.cpp)
 target_link_libraries(stream-kokkos-4d-mdrange-tiling Kokkos::kokkos)
 
+add_executable(stream-kokkos-4d-mdrange-rec-tiling stream-kokkos-4d-mdrange-rec-tiling.cpp)
+target_link_libraries(stream-kokkos-4d-mdrange-rec-tiling Kokkos::kokkos)
+
 add_executable(stream-kokkos-4d-openmp stream-kokkos-4d-openmp.cpp)
 target_link_libraries(stream-kokkos-4d-openmp Kokkos::kokkos)
 
