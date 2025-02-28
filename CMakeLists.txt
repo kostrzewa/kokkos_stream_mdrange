@@ -24,6 +24,9 @@ target_link_libraries(stream-kokkos-range Kokkos::kokkos)
 add_executable(stream-kokkos-2d-mdrange stream-kokkos-2d-mdrange.cpp)
 target_link_libraries(stream-kokkos-2d-mdrange Kokkos::kokkos)
 
+add_executable(stream-kokkos-2d-mdrange-tiling-scan stream-kokkos-2d-mdrange-tiling-scan.cpp)
+target_link_libraries(stream-kokkos-2d-mdrange-tiling-scan Kokkos::kokkos)
+
 add_executable(stream-kokkos-3d-mdrange stream-kokkos-3d-mdrange.cpp)
 target_link_libraries(stream-kokkos-3d-mdrange Kokkos::kokkos)
 
