@@ -232,7 +232,7 @@ void perform_triad(StreamDeviceArray a, const constStreamDeviceArray b,
                    const constStreamDeviceArray c, const real_t scalar,
                    const size_t tiling_factor) {
   constexpr auto rank = a.rank();
-  const auto tiling = get_tiling(a);
+  const auto tiling = get_tiling(a,tiling_factor);
   Kokkos::parallel_for(
       "triad", 
       Policy<rank>(make_repeated_sequence<rank>(0), make_repeated_sequence<rank>(a.extent(0)),tiling),
