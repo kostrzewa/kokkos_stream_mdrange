@@ -110,7 +110,7 @@ get_tiling(const V view, const size_t factor = 1)
     // using 'factor' we keep the total tile volume constant but exchange it between the
     // outermost and innermost index
     const auto tile_size = view.extent(1)/factor == 0 ? 1 : view.extent(1)/factor;
-    return Kokkos::Array<std::size_t,rank>({factor,tile_size});    
+    return Kokkos::Array<std::size_t,rank>({4*factor,tile_size});    
   } else {    
     // for GPUs we use the recommended tiling for now, we just need to convert it appropriately    
     // from "array_index_type"    
@@ -121,6 +121,9 @@ get_tiling(const V view, const size_t factor = 1)
     for(int i = 0; i < max_rank; ++i){    
       res[i] = rec_tiling[i];
     }
+    // for a 2D view we need more threads in the innermost dimension
+    res[0] *= 2;
+
     // for GPUs, we reduce the tile-size on the fastest-running (left-most)
     // and increase the one on the slowest-running (right-most) dimension
     const auto tile_size = res[0]/factor == 0 ? 1 : res[0]/factor;
