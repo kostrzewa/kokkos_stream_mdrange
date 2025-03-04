@@ -5,8 +5,8 @@ n2=( 16 64 144 256 576 1024 2304 4096 6400 9216 12544 16384 20736 25600 36864 )
 
 echo nt n factor policy kernel bw > results.dat 
 
-# 2 sockets, 64 cores per socket, 32 cores "per gpu"
-for nt in 32; do
+# 2 sockets, 48 cores per socket
+for nt in 96; do
 
   export OMP_NUM_THREADS=$nt
   export OMP_PLACES=cores
@@ -26,15 +26,11 @@ for nt in 32; do
         echo $nt $N $f 3d-mdrange ${results[$(( 2*$i ))]} ${results[$(( 2*$i + 1 ))]} | tee -a results.dat
       done
       
-      # on GPUs we exceed the maximum number of threads per block or we get verification errors
-      # if the factor is larger than 32
-      if [ ${f} -le 32 ]; then
-        N=$(( ${n4[$n]}*${n4[$n]}*${n4[$n]}*${n4[$n]} ))
-        results=( $(./stream-kokkos-4d-mdrange-tiling-scan -n ${n4[$n]} -f ${f} | grep GB | awk '{print $1 " " $2}') )
-        for i in $(seq 0 4); do
-          echo $nt $N $f 4d-mdrange ${results[$(( 2*$i ))]} ${results[$(( 2*$i + 1 ))]} | tee -a results.dat
-        done
-      fi
+      N=$(( ${n4[$n]}*${n4[$n]}*${n4[$n]}*${n4[$n]} ))
+      results=( $(./stream-kokkos-4d-mdrange-tiling-scan -n ${n4[$n]} -f ${f} | grep GB | awk '{print $1 " " $2}') )
+      for i in $(seq 0 4); do
+        echo $nt $N $f 4d-mdrange ${results[$(( 2*$i ))]} ${results[$(( 2*$i + 1 ))]} | tee -a results.dat
+      done
     done
   done || break
 done

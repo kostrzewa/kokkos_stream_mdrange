@@ -6,6 +6,12 @@
 * `stream-kokkos-4d-mdrange.cpp`: stream benchmark using 4D views and a 4D MDRangePolicy for the `parallel_for`
 * `stream-kokkos-5d-mdrange.cpp`: stream benchmark using 5D views and a 5D MDRangePolicy for the `parallel_for`
 
+Various additional implementations have been added which go beyond using the default tiling.
+
+* `stream-kokkos-2d-mdrange-tiling-scan.cpp` allows for a limited type of scan through different tile size configurations.
+* `stream-kokkos-3d-mdrange-tiling-scan.cpp` allows for a limited type of scan through different tile size configurations.
+* `stream-kokkos-4d-mdrange-tiling-scan.cpp` allows for a limited type of scan through different tile size configurations.
+
 ## Compilation instructions
 
 Example compilation scripts are provided in the `compilation` directory for different architectures.
@@ -19,3 +25,5 @@ In the run scripts, the array extents are roughly matched. The worst matching is
 CPU benchmarks are run on both one and two sockets (using `OMP_PLACES=cores OMP_PROC_BIND=close` to ensure thread pinning to one socket when fewer threads are used than there are CPU cores).
 
 See [results](run_scripts_and_results/kokkos_stream_mdrange.pdf) for result plots.
+
+A scan of various types of tilings can be found here: [tiling_scan](tiling_scan/kokkos_stream_mdrange_tiling_scan.pdf). 

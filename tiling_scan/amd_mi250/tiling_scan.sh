@@ -26,7 +26,8 @@ for nt in 7; do
         echo $nt $N $f 3d-mdrange ${results[$(( 2*$i ))]} ${results[$(( 2*$i + 1 ))]} | tee -a results.dat
       done
       
-      # in the 4D case we exceed the maximum number of threads per block if the
+      # in the 4D case we exceed the maximum number of threads per block 
+      # or we get verification errors if the
       # right-most tile size is greater than 16 on AMD MI250
       if [ ${f} -le 16 ]; then
         N=$(( ${n4[$n]}*${n4[$n]}*${n4[$n]}*${n4[$n]} ))
