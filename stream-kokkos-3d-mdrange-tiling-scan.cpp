@@ -61,13 +61,13 @@ using real_t = double;
 #define HLINE "-------------------------------------------------------------\n"
 
 using StreamDeviceArray =
-    Kokkos::View<real_t **, Kokkos::MemoryTraits<Kokkos::Restrict>>;
+    Kokkos::View<real_t ***, Kokkos::MemoryTraits<Kokkos::Restrict>>;
 #if defined(KOKKOS_ENABLE_CUDA)
 using constStreamDeviceArray =
-    Kokkos::View<const real_t **, Kokkos::MemoryTraits<Kokkos::RandomAccess>>;
+    Kokkos::View<const real_t ***, Kokkos::MemoryTraits<Kokkos::RandomAccess>>;
 #else
 using constStreamDeviceArray =
-    Kokkos::View<const real_t **, Kokkos::MemoryTraits<Kokkos::Restrict>>;
+    Kokkos::View<const real_t ***, Kokkos::MemoryTraits<Kokkos::Restrict>>;
 #endif
 using StreamHostArray = typename StreamDeviceArray::HostMirror;
 
@@ -109,8 +109,8 @@ get_tiling(const V view, const size_t factor = 1)
     // for OpenMP the
     // using 'factor' we keep the total tile volume constant but exchange it between the
     // outermost and innermost index
-    const auto tile_size = view.extent(1)/factor == 0 ? 1 : view.extent(1)/factor;
-    return Kokkos::Array<std::size_t,rank>({factor,tile_size});    
+    const auto tile_size = view.extent(2)/factor == 0 ? 1 : view.extent(2)/factor;
+    return Kokkos::Array<std::size_t,rank>({factor,1,tile_size});    
   } else {    
     // for GPUs we use the recommended tiling for now, we just need to convert it appropriately    
     // from "array_index_type"    
@@ -136,13 +136,13 @@ constexpr real_t cinit = 0.0;
 
 int parse_args(int argc, char **argv, StreamIndex &stream_array_size, size_t &tiling_factor) {
   // Defaults
-  stream_array_size = 1024;
+  stream_array_size = 96;
   tiling_factor = 1;
 
   const std::string help_string =
       "  -n <N>, --nelements <N>\n"
-      "     Create stream views containing <N>^2 elements.\n"
-      "     Default: 1024\n"
+      "     Create stream views containing <N>^3 elements.\n"
+      "     Default: 96\n"
       "  -f <F>, --factor <F>\n"
       "     factor to inversely scale the fastest and slowest-running tile dimensions\n"
       "     Default: 1\n"
@@ -183,8 +183,8 @@ void perform_set(const StreamDeviceArray a, const real_t scalar, const size_t ti
   Kokkos::parallel_for(
       "set", 
       Policy<rank>(make_repeated_sequence<rank>(0), make_repeated_sequence<rank>(a.extent(0)), tiling),
-      KOKKOS_LAMBDA(const StreamIndex i, const StreamIndex j)
-      { a(i,j) = scalar; });
+      KOKKOS_LAMBDA(const StreamIndex i, const StreamIndex j, const StreamIndex k)
+      { a(i,j,k) = scalar; });
 
   Kokkos::fence();
 }
@@ -195,8 +195,8 @@ void perform_copy(const constStreamDeviceArray a, StreamDeviceArray b, const siz
   Kokkos::parallel_for(
       "copy",
       Policy<rank>(make_repeated_sequence<rank>(0), make_repeated_sequence<rank>(a.extent(0)), tiling),
-      KOKKOS_LAMBDA(const StreamIndex i, const StreamIndex j)
-      { b(i,j) = a(i,j); });
+      KOKKOS_LAMBDA(const StreamIndex i, const StreamIndex j, const StreamIndex k)
+      { b(i,j,k) = a(i,j,k); });
 
   Kokkos::fence();
 }
@@ -208,8 +208,8 @@ void perform_scale(StreamDeviceArray a, const constStreamDeviceArray b,
   Kokkos::parallel_for(
       "scale",
       Policy<rank>(make_repeated_sequence<rank>(0), make_repeated_sequence<rank>(a.extent(0)), tiling),
-      KOKKOS_LAMBDA(const StreamIndex i, const StreamIndex j)
-      { a(i,j) = scalar * b(i,j); });
+      KOKKOS_LAMBDA(const StreamIndex i, const StreamIndex j, const StreamIndex k)
+      { a(i,j,k) = scalar * b(i,j,k); });
 
   Kokkos::fence();
 }
@@ -222,8 +222,8 @@ void perform_add(const constStreamDeviceArray a,
   Kokkos::parallel_for(
       "add",
       Policy<rank>(make_repeated_sequence<rank>(0), make_repeated_sequence<rank>(a.extent(0)),tiling),
-      KOKKOS_LAMBDA(const StreamIndex i, const StreamIndex j)
-      { c(i,j) = a(i,j) + b(i,j); });
+      KOKKOS_LAMBDA(const StreamIndex i, const StreamIndex j, const StreamIndex k)
+      { c(i,j,k) = a(i,j,k) + b(i,j,k); });
 
   Kokkos::fence();
 }
@@ -236,8 +236,8 @@ void perform_triad(StreamDeviceArray a, const constStreamDeviceArray b,
   Kokkos::parallel_for(
       "triad", 
       Policy<rank>(make_repeated_sequence<rank>(0), make_repeated_sequence<rank>(a.extent(0)),tiling),
-      KOKKOS_LAMBDA(const StreamIndex i, const StreamIndex j)
-      { a(i,j) = b(i,j) + scalar * c(i,j); });
+      KOKKOS_LAMBDA(const StreamIndex i, const StreamIndex j, const StreamIndex k)
+      { a(i,j,k) = b(i,j,k) + scalar * c(i,j,k); });
 
   Kokkos::fence();
 }
@@ -257,13 +257,16 @@ int perform_validation(StreamHostArray &a, StreamHostArray &b,
   };
 
   std::cout << "ai: " << ai << "\n";
-  std::cout << "a(0,0): " << a(0,0) << "\n";
+  std::cout << "a(0,0,0): " << a(0,0,0) << "\n";
   std::cout << "bi: " << bi << "\n";
-  std::cout << "b(0,0): " << b(0,0) << "\n";
+  std::cout << "b(0,0,0): " << b(0,0,0) << "\n";
   std::cout << "ci: " << ci << "\n";
-  std::cout << "c(0,0): " << c(0,0) << "\n";
+  std::cout << "c(0,0,0): " << c(0,0,0) << "\n";
  
-  const double nelem = (double)arraySize*arraySize; 
+  const double nelem = (double)arraySize*
+                       (double)arraySize*
+                       (double)arraySize;
+
   const double epsilon = 2*4*STREAM_NTIMES*std::numeric_limits<real_t>::epsilon();
 
   double aError = 0.0;
@@ -276,17 +279,19 @@ int perform_validation(StreamHostArray &a, StreamHostArray &b,
     #pragma omp for collapse(2)
     for (StreamIndex i = 0; i < arraySize; ++i) {
       for (StreamIndex j = 0; j < arraySize; ++j) {
-        err = std::abs(a(i,j) - ai);
-        if( err > epsilon ){
-          aError += err;
-        }
-        err = std::abs(b(i,j) - bi);
-        if( err > epsilon ){
-          bError += err;
-        }
-        err = std::abs(c(i,j) - ci);
-        if( err > epsilon ){
-          cError += err;
+        for (StreamIndex k = 0; k < arraySize; ++k) {
+          err = std::abs(a(i,j,k) - ai);
+          if( err > epsilon ){
+            aError += err;
+          }
+          err = std::abs(b(i,j,k) - bi);
+          if( err > epsilon ){
+            bError += err;
+          }
+          err = std::abs(c(i,j,k) - ci);
+          if( err > epsilon ){
+            cError += err;
+          }
         }
       }
     }
@@ -333,10 +338,11 @@ int run_benchmark(const StreamIndex stream_array_size, const size_t tiling_facto
   printf("Creating Views...\n");
 
   const double nelem = (double)stream_array_size*
+                       (double)stream_array_size*
                        (double)stream_array_size;
 
   printf("Memory Sizes:\n");
-  printf("- Array Size:    %" PRIu64 "^2\n",
+  printf("- Array Size:    %" PRIu64 "^3\n",
          static_cast<uint64_t>(stream_array_size));
   printf("- Per Array:     %12.2f MB\n",
          1.0e-6 * nelem * (double)sizeof(real_t));
@@ -351,11 +357,11 @@ int run_benchmark(const StreamIndex stream_array_size, const size_t tiling_facto
 
   // WithoutInitializing to circumvent first touch bug on arm systems
   StreamDeviceArray dev_a(Kokkos::view_alloc(Kokkos::WithoutInitializing, "a"),
-                          stream_array_size,stream_array_size);
+                          stream_array_size,stream_array_size,stream_array_size);
   StreamDeviceArray dev_b(Kokkos::view_alloc(Kokkos::WithoutInitializing, "b"),
-                          stream_array_size,stream_array_size);
+                          stream_array_size,stream_array_size,stream_array_size);
   StreamDeviceArray dev_c(Kokkos::view_alloc(Kokkos::WithoutInitializing, "c"),
-                          stream_array_size,stream_array_size);
+                          stream_array_size,stream_array_size,stream_array_size);
 
   StreamHostArray a = Kokkos::create_mirror_view(dev_a);
   StreamHostArray b = Kokkos::create_mirror_view(dev_b);
@@ -378,10 +384,10 @@ int run_benchmark(const StreamIndex stream_array_size, const size_t tiling_facto
                             Kokkos::DefaultHostExecutionSpace>(make_repeated_sequence<a.rank()>(0),
                                                                make_repeated_sequence<a.rank()>(stream_array_size),
                                                                tiling),
-      KOKKOS_LAMBDA(const StreamIndex i, const StreamIndex j) {
-        a(i,j) = ainit;
-        b(i,j) = binit;
-        c(i,j) = cinit;
+      KOKKOS_LAMBDA(const StreamIndex i, const StreamIndex j, const StreamIndex k) {
+        a(i,j,k) = ainit;
+        b(i,j,k) = binit;
+        c(i,j,k) = cinit;
       });
   Kokkos::fence();
   
@@ -410,10 +416,10 @@ int run_benchmark(const StreamIndex stream_array_size, const size_t tiling_facto
       Policy<dev_a.rank()>(make_repeated_sequence<dev_a.rank()>(0),
                            make_repeated_sequence<dev_a.rank()>(stream_array_size),
                            tiling),
-      KOKKOS_LAMBDA(const StreamIndex i, const StreamIndex j) {
-        dev_a(i,j) = ainit;
-        dev_b(i,j) = binit;
-        dev_c(i,j) = cinit;
+      KOKKOS_LAMBDA(const StreamIndex i, const StreamIndex j, const StreamIndex k) {
+        dev_a(i,j,k) = ainit;
+        dev_b(i,j,k) = binit;
+        dev_c(i,j,k) = cinit;
       });
   Kokkos::fence();
 
@@ -421,7 +427,7 @@ int run_benchmark(const StreamIndex stream_array_size, const size_t tiling_facto
 
   Kokkos::Timer timer;
 
-  for (StreamIndex k = 0; k < STREAM_NTIMES; ++k) {
+  for (int k = 0; k < STREAM_NTIMES; ++k) {
     timer.reset();
     perform_set(dev_c, 1.5, tiling_factor);
     setTime = std::min(setTime, timer.seconds());
@@ -474,7 +480,7 @@ int run_benchmark(const StreamIndex stream_array_size, const size_t tiling_facto
 
 int main(int argc, char *argv[]) {
   printf(HLINE);
-  printf("Kokkos 2D MDRangePolicy Tiling Scan STREAM Benchmark\n");
+  printf("Kokkos 3D MDRangePolicy Tiling Scan STREAM Benchmark\n");
   printf(HLINE);
 
   Kokkos::initialize(argc, argv);
